@@ -4,6 +4,10 @@ from flask_migrate import Migrate
 from flask_restx import Api
 from flask_jwt_extended import JWTManager
 from config import Config
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 db = SQLAlchemy()
 migrate = Migrate()
