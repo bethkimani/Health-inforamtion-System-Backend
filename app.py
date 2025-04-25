@@ -7,6 +7,7 @@ from config import Config
 from dotenv import load_dotenv
 import os
 from werkzeug.exceptions import HTTPException
+import logging
 
 load_dotenv()
 
@@ -20,9 +21,16 @@ api = Api(
 )
 jwt = JWTManager()
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Ensure tokens are read from headers
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -31,7 +39,8 @@ def create_app():
 
     @api.errorhandler(Exception)
     def handle_unprocessable_entity(error):
-        if isinstance(error, HTTPException) and error.code in [400, 401, 404]:  # Preserve specific status codes
+        logger.error(f"Error caught: {str(error)}", exc_info=True)  # Log full error
+        if isinstance(error, HTTPException) and error.code in [400, 401, 404]:
             return {'message': str(error.description), 'errors': {}}, error.code
         return {'message': str(error), 'errors': getattr(error, 'data', {}).get('messages', {})}, 422
 
@@ -50,7 +59,7 @@ def create_app():
         from routes.supplier import supplier_ns
         from routes.dashboard import dashboard_ns
     except ImportError as e:
-        print(f"ImportError: {e}")
+        logger.error(f"ImportError: {e}")
         raise
 
     api.add_namespace(auth_ns, path='/api/auth')
