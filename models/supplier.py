@@ -1,0 +1,28 @@
+
+from app import db
+from datetime import datetime
+
+class Supplier(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(20))
+    bio = db.Column(db.Text)
+    license_number = db.Column(db.String(50))
+    address = db.Column(db.String(200))
+    city = db.Column(db.String(100))
+    county = db.Column(db.String(100))
+    country = db.Column(db.String(100))
+    postal_code = db.Column(db.String(20))
+    contact_person_name = db.Column(db.String(100))
+    contact_person_email = db.Column(db.String(120))
+    contact_person_phone = db.Column(db.String(20))
+    status = db.Column(db.Boolean, default=True)
+    contract_start_date = db.Column(db.Date)
+    contract_end_date = db.Column(db.Date)
+    supply_category = db.Column(db.String(100))
+    certifications = db.Column(db.Text)
+    delivery_frequency = db.Column(db.String(50))
+    next_delivery_date = db.Column(db.Date)
+    delivery_notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
