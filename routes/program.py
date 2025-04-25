@@ -23,6 +23,8 @@ class ProgramList(Resource):
     @program_ns.marshal_with(program_model, code=201)
     def post(self):
         data = program_ns.payload
+        if not data.get('name'):
+            return {'message': 'name is required and cannot be empty'}, 400
         program = Program(
             name=data['name'],
             description=data.get('description')
