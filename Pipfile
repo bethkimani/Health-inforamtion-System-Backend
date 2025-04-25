@@ -12,6 +12,7 @@ flask-migrate = "*"
 pytest = "*"
 pytest-flask = "*"
 werkzeug = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
