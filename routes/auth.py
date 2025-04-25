@@ -5,7 +5,7 @@ from models.user import User
 
 auth_ns = Namespace('auth', description='Authentication operations')
 
-user_model = auth_ns.model('User', {
+register_model = auth_ns.model('Register', {
     'email': fields.String(required=True),
     'password': fields.String(required=True),
     'role': fields.String(required=True)
@@ -18,11 +18,11 @@ login_model = auth_ns.model('Login', {
 
 @auth_ns.route('/register')
 class Register(Resource):
-    @auth_ns.expect(user_model)
+    @auth_ns.expect(register_model, validate=True)
     def post(self):
         data = auth_ns.payload
         if User.query.filter_by(email=data['email']).first():
-            return {'message': 'User already exists'}, 400
+            auth_ns.abort(400, message='Email already exists')
         user = User(email=data['email'], role=data['role'])
         user.set_password(data['password'])
         db.session.add(user)
@@ -31,11 +31,11 @@ class Register(Resource):
 
 @auth_ns.route('/login')
 class Login(Resource):
-    @auth_ns.expect(login_model)
+    @auth_ns.expect(login_model, validate=True)
     def post(self):
         data = auth_ns.payload
         user = User.query.filter_by(email=data['email']).first()
-        if user and user.check_password(data['password']):
-            access_token = create_access_token(identity=user.id)
-            return {'access_token': access_token}, 200
-        return {'message': 'Invalid credentials'}, 401
+        if not user or not user.check_password(data['password']):
+            auth_ns.abort(401, message='Invalid credentials')
+        access_token = create_access_token(identity=user.id)
+        return {'access_token': access_token}, 200

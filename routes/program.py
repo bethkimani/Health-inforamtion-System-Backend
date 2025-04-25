@@ -6,6 +6,7 @@ from models.program import Program
 program_ns = Namespace('programs', description='Program operations')
 
 program_model = program_ns.model('Program', {
+    'id': fields.Integer(readonly=True),
     'name': fields.String(required=True),
     'description': fields.String
 })
@@ -18,11 +19,16 @@ class ProgramList(Resource):
         return Program.query.all()
 
     @jwt_required()
-    @program_ns.expect(program_model)
+    @program_ns.expect(program_model, validate=True)
     @program_ns.marshal_with(program_model, code=201)
     def post(self):
         data = program_ns.payload
-        program = Program(**data)
+        if not data.get('name'):
+            program_ns.abort(400, message='Name is required')
+        program = Program(
+            name=data['name'],
+            description=data.get('description')
+        )
         db.session.add(program)
         db.session.commit()
         return program, 201

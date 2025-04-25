@@ -1,6 +1,7 @@
 import pytest
 from app import create_app, db
 from models.program import Program
+from models.user import User
 from flask_jwt_extended import create_access_token
 
 @pytest.fixture
@@ -37,9 +38,10 @@ def test_create_program(client, token):
     assert response.json['name'] == 'TB Program'
 
 def test_get_programs(client, token):
-    program = Program(name='TB Program', description='Tuberculosis treatment')
-    db.session.add(program)
-    db.session.commit()
+    with client.application.app_context():
+        program = Program(name='TB Program', description='Tuberculosis treatment')
+        db.session.add(program)
+        db.session.commit()
     response = client.get('/api/programs', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     assert len(response.json) == 1

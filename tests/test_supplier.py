@@ -1,6 +1,7 @@
 import pytest
 from app import create_app, db
 from models.supplier import Supplier
+from models.user import User
 from flask_jwt_extended import create_access_token
 
 @pytest.fixture
@@ -38,9 +39,10 @@ def test_create_supplier(client, token):
     assert response.json['name'] == 'MedSupply'
 
 def test_get_suppliers(client, token):
-    supplier = Supplier(name='MedSupply', contact_info='contact@medsupply.com')
-    db.session.add(supplier)
-    db.session.commit()
+    with client.application.app_context():
+        supplier = Supplier(name='MedSupply', contact_info='contact@medsupply.com')
+        db.session.add(supplier)
+        db.session.commit()
     response = client.get('/api/suppliers', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     assert len(response.json) == 1
@@ -51,3 +53,4 @@ def test_supplier_with_empty_name(client, token):
         'contact_info': 'contact@medsupply.com'
     }, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 400
+    assert 'name' in response.json['message'].lower()
