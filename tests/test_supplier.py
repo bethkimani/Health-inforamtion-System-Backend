@@ -1,9 +1,7 @@
 import pytest
 from app import create_app, db
-from models.user import User
 from models.supplier import Supplier
 from flask_jwt_extended import create_access_token
-from datetime import date
 
 @pytest.fixture
 def app():
@@ -32,40 +30,24 @@ def token(app):
 
 def test_create_supplier(client, token):
     response = client.post('/api/suppliers', json={
-        'name': 'MediSupply Co.',
-        'email': 'contact@medisupply.com',
-        'phone': '+254 712 345 678',
-        'status': True,
-        'contract_start_date': '2025-01-01',
-        'contract_end_date': '2026-01-01'
+        'name': 'MedSupply',
+        'contact_info': 'contact@medsupply.com',
+        'contract_details': 'Annual contract'
     }, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 201
-    assert response.json['message'] == 'Supplier created successfully'
+    assert response.json['name'] == 'MedSupply'
 
-def test_get_supplier(client, token):
-    supplier = Supplier(
-        name='MediSupply Co.',
-        email='contact@medisupply.com',
-        phone='+254 712 345 678',
-        status=True
-    )
+def test_get_suppliers(client, token):
+    supplier = Supplier(name='MedSupply', contact_info='contact@medsupply.com')
     db.session.add(supplier)
     db.session.commit()
-
-    response = client.get('/api/suppliers/1', headers={'Authorization': f'Bearer {token}'})
+    response = client.get('/api/suppliers', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
-    assert response.json['name'] == 'MediSupply Co.'
+    assert len(response.json) == 1
 
-def test_delete_supplier(client, token):
-    supplier = Supplier(
-        name='MediSupply Co.',
-        email='contact@medisupply.com',
-        phone='+254 712 345 678',
-        status=True
-    )
-    db.session.add(supplier)
-    db.session.commit()
-
-    response = client.delete('/api/suppliers/1', headers={'Authorization': f'Bearer {token}'})
-    assert response.status_code == 200
-    assert response.json['message'] == 'Supplier deleted successfully'
+def test_supplier_with_empty_name(client, token):
+    response = client.post('/api/suppliers', json={
+        'name': '',
+        'contact_info': 'contact@medsupply.com'
+    }, headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 400

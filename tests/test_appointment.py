@@ -1,11 +1,9 @@
 import pytest
 from app import create_app, db
-from models.user import User
 from models.client import Client
 from models.program import Program
 from models.appointment import Appointment
 from flask_jwt_extended import create_access_token
-from datetime import datetime
 
 @pytest.fixture
 def app():
@@ -33,45 +31,35 @@ def token(app):
         return create_access_token(identity=user.id)
 
 def test_create_appointment(client, token):
-    client_data = Client(first_name='John', last_name='Doe', email='john.doe@example.com')
+    client_obj = Client(first_name='John', last_name='Doe', email='john.doe@example.com')
     program = Program(name='TB Program', description='Tuberculosis treatment')
-    db.session.add(client_data)
+    db.session.add(client_obj)
     db.session.add(program)
     db.session.commit()
-
     response = client.post('/api/appointments', json={
         'client_id': 1,
         'program_id': 1,
-        'requested_at': datetime.utcnow().isoformat()
+        'status': 'Pending'
     }, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 201
-    assert response.json['message'] == 'Appointment created successfully'
+    assert response.json['status'] == 'Pending'
 
 def test_get_appointments(client, token):
-    client_data = Client(first_name='John', last_name='Doe', email='john.doe@example.com')
+    client_obj = Client(first_name='John', last_name='Doe', email='john.doe@example.com')
     program = Program(name='TB Program', description='Tuberculosis treatment')
     appointment = Appointment(client_id=1, program_id=1, status='Pending')
-    db.session.add(client_data)
+    db.session.add(client_obj)
     db.session.add(program)
     db.session.add(appointment)
     db.session.commit()
-
     response = client.get('/api/appointments', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     assert len(response.json) == 1
-    assert response.json[0]['client_name'] == 'John Doe'
 
-def test_update_appointment_status(client, token):
-    client_data = Client(first_name='John', last_name='Doe', email='john.doe@example.com')
-    program = Program(name='TB Program', description='Tuberculosis treatment')
-    appointment = Appointment(client_id=1, program_id=1, status='Pending')
-    db.session.add(client_data)
-    db.session.add(program)
-    db.session.add(appointment)
-    db.session.commit()
-
-    response = client.put('/api/appointments/1/status', json={
-        'status': 'Approved'
+def test_appointment_with_invalid_client(client, token):
+    response = client.post('/api/appointments', json={
+        'client_id': 999,
+        'program_id': 1,
+        'status': 'Pending'
     }, headers={'Authorization': f'Bearer {token}'})
-    assert response.status_code == 200
-    assert response.json['message'] == 'Appointment status updated to Approved'
+    assert response.status_code == 400

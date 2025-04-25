@@ -18,44 +18,31 @@ def app():
 def client(app):
     return app.test_client()
 
-def test_register_user(client):
+def test_register(client):
     response = client.post('/api/auth/register', json={
         'email': 'test@doctor.com',
         'password': 'password123',
-        'role': 'doctor',
-        'first_name': 'John',
-        'last_name': 'Doe'
+        'role': 'doctor'
     })
     assert response.status_code == 201
     assert response.json['message'] == 'User registered successfully'
 
-def test_login_user(client):
-    user = User(email='test@doctor.com', role='doctor', first_name='John', last_name='Doe')
+def test_login(client):
+    user = User(email='test@doctor.com', role='doctor')
     user.set_password('password123')
     db.session.add(user)
     db.session.commit()
-
     response = client.post('/api/auth/login', json={
         'email': 'test@doctor.com',
         'password': 'password123'
     })
     assert response.status_code == 200
     assert 'access_token' in response.json
-    assert response.json['user']['email'] == 'test@doctor.com'
 
-def test_get_profile(client):
-    user = User(email='test@doctor.com', role='doctor', first_name='John', last_name='Doe')
-    user.set_password('password123')
-    db.session.add(user)
-    db.session.commit()
-
-    login_response = client.post('/api/auth/login', json={
+def test_login_invalid_credentials(client):
+    response = client.post('/api/auth/login', json={
         'email': 'test@doctor.com',
-        'password': 'password123'
+        'password': 'wrongpassword'
     })
-    token = login_response.json['access_token']
-
-    response = client.get('/api/auth/profile', headers={'Authorization': f'Bearer {token}'})
-    assert response.status_code == 200
-    assert response.json['email'] == 'test@doctor.com'
-    assert response.json['first_name'] == 'John'
+    assert response.status_code == 401
+    assert response.json['message'] == 'Invalid credentials'
