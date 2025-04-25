@@ -37,5 +37,5 @@ class Login(Resource):
         user = User.query.filter_by(email=data['email']).first()
         if not user or not user.check_password(data['password']):
             auth_ns.abort(401, message='Invalid credentials')
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))  # Convert user.id to string
         return {'access_token': access_token}, 200
