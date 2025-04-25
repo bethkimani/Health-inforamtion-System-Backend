@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,6 +6,7 @@ from flask_jwt_extended import JWTManager
 from config import Config
 from dotenv import load_dotenv
 import os
+from werkzeug.exceptions import HTTPException
 
 load_dotenv()
 
@@ -29,12 +29,12 @@ def create_app():
     api.init_app(app)
     jwt.init_app(app)
 
-    # Custom error handler for validation errors
     @api.errorhandler(Exception)
     def handle_unprocessable_entity(error):
+        if isinstance(error, HTTPException) and error.code in [400, 401, 404]:  # Preserve specific status codes
+            return {'message': str(error.description), 'errors': {}}, error.code
         return {'message': str(error), 'errors': getattr(error, 'data', {}).get('messages', {})}, 422
 
-    # Import models
     from models.user import User
     from models.supplier import Supplier
     from models.program import Program
@@ -42,26 +42,23 @@ def create_app():
     from models.client import Client
     from models.appointment import Appointment
 
-    # Import namespaces
     try:
         from routes.auth import auth_ns
         from routes.client import client_ns
         from routes.program import program_ns
         from routes.appointment import appointment_ns
-        # Temporarily comment out unused namespaces
-        # from routes.supplier import supplier_ns
-        # from routes.dashboard import dashboard_ns
+        from routes.supplier import supplier_ns
+        from routes.dashboard import dashboard_ns
     except ImportError as e:
         print(f"ImportError: {e}")
         raise
 
-    # Register namespaces
     api.add_namespace(auth_ns, path='/api/auth')
     api.add_namespace(client_ns, path='/api/clients')
     api.add_namespace(program_ns, path='/api/programs')
     api.add_namespace(appointment_ns, path='/api/appointments')
-    # api.add_namespace(supplier_ns, path='/api/suppliers')
-    # api.add_namespace(dashboard_ns, path='/api/dashboard')
+    api.add_namespace(supplier_ns, path='/api/suppliers')
+    api.add_namespace(dashboard_ns, path='/api/dashboard')
 
     return app
 

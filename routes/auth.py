@@ -22,7 +22,7 @@ class Register(Resource):
     def post(self):
         data = auth_ns.payload
         if User.query.filter_by(email=data['email']).first():
-            auth_ns.abort(400, message='Email already exists')
+            return {'message': 'Email already exists'}, 400
         user = User(email=data['email'], role=data['role'])
         user.set_password(data['password'])
         db.session.add(user)
@@ -31,11 +31,11 @@ class Register(Resource):
 
 @auth_ns.route('/login')
 class Login(Resource):
-    @auth_ns.expect(login_model, validate=True)
+    @auth_ns.expect(login_model, validate=False)
     def post(self):
         data = auth_ns.payload
         user = User.query.filter_by(email=data['email']).first()
         if not user or not user.check_password(data['password']):
-            auth_ns.abort(401, message='Invalid credentials')
-        access_token = create_access_token(identity=str(user.id))  # Convert user.id to string
+            return {'message': 'Invalid credentials'}, 401  # Direct response instead of abort
+        access_token = create_access_token(identity=str(user.id))
         return {'access_token': access_token}, 200
