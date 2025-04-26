@@ -1,42 +1,35 @@
-
-from flask_restx import Namespace, Resource, fields
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from app import db
 from models.appointment import Appointment
-from models.client import Client
-from models.program import Program
+from models import db
 
-appointment_ns = Namespace('appointments', description='Appointment operations')
+appointment_bp = Blueprint('appointment', __name__)
 
-appointment_model = appointment_ns.model('Appointment', {
-    'id': fields.Integer(readonly=True),
-    'client_id': fields.Integer(required=True),
-    'program_id': fields.Integer(required=True),
-    'status': fields.String(required=True),
-    'requested_at': fields.DateTime(readonly=True)
-})
+@appointment_bp.route('/appointments', methods=['GET'])
+@jwt_required()
+def get_appointments():
+    appointments = Appointment.query.all()
+    return jsonify([{
+        'id': a.id,
+        'client_id': a.client_id,
+        'client_name': f"{a.client.first_name} {a.client.last_name}",
+        'program': a.program.name,
+        'requested_at': a.requested_at.isoformat(),
+        'status': a.status
+    } for a in appointments]), 200
 
-@appointment_ns.route('')
-class AppointmentList(Resource):
-    @jwt_required()
-    @appointment_ns.marshal_list_with(appointment_model)
-    def get(self):
-        return Appointment.query.all()
+@appointment_bp.route('/appointments/<id>/approve', methods=['PATCH'])
+@jwt_required()
+def approve_appointment(id):
+    appointment = Appointment.query.get_or_404(id)
+    appointment.status = 'Approved'
+    db.session.commit()
+    return jsonify({'message': 'Appointment approved'}), 200
 
-    @jwt_required()
-    @appointment_ns.expect(appointment_model, validate=True)
-    @appointment_ns.marshal_with(appointment_model, code=201)
-    def post(self):
-        data = appointment_ns.payload
-        if not Client.query.get(data['client_id']):
-            appointment_ns.abort(400, message='Invalid client_id')
-        if not Program.query.get(data['program_id']):
-            appointment_ns.abort(400, message='Invalid program_id')
-        appointment = Appointment(
-            client_id=data['client_id'],
-            program_id=data['program_id'],
-            status=data['status']
-        )
-        db.session.add(appointment)
-        db.session.commit()
-        return appointment, 201
+@appointment_bp.route('/appointments/<id>/reject', methods=['PATCH'])
+@jwt_required()
+def reject_appointment(id):
+    appointment = Appointment.query.get_or_404(id)
+    appointment.status = 'Rejected'
+    db.session.commit()
+    return jsonify({'message': 'Appointment rejected'}), 200

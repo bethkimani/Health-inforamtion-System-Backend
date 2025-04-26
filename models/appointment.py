@@ -1,9 +1,8 @@
-from app import db
-from datetime import datetime, timezone
+from models import db
 
 class Appointment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
-    program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
-    status = db.Column(db.String(20), nullable=False)
-    requested_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    id = db.Column(db.String(10), primary_key=True)
+    client_id = db.Column(db.String(10), db.ForeignKey('client.id'), nullable=False)
+    program_id = db.Column(db.String(10), db.ForeignKey('program.id'), nullable=False)
+    requested_at = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='Pending')

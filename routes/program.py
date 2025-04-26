@@ -1,34 +1,37 @@
-from flask_restx import Namespace, Resource, fields
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from app import db
 from models.program import Program
+from models import db
 
-program_ns = Namespace('programs', description='Program operations')
+program_bp = Blueprint('program', __name__)
 
-program_model = program_ns.model('Program', {
-    'id': fields.Integer(readonly=True),
-    'name': fields.String(required=True),
-    'description': fields.String(required=False)
-})
+@program_bp.route('/programs', methods=['GET'])
+@jwt_required()
+def get_programs():
+    programs = Program.query.all()
+    return jsonify([{
+        'id': p.id,
+        'name': p.name,
+        'description': p.description
+    } for p in programs]), 200
 
-@program_ns.route('')
-class ProgramList(Resource):
-    @jwt_required()
-    @program_ns.marshal_list_with(program_model)
-    def get(self):
-        return Program.query.all(), 200
+@program_bp.route('/programs', methods=['POST'])
+@jwt_required()
+def add_program():
+    data = request.get_json()
+    program = Program(
+        id=data['id'],
+        name=data['name'],
+        description=data['description']
+    )
+    db.session.add(program)
+    db.session.commit()
+    return jsonify({'message': 'Program added successfully'}), 201
 
-    @jwt_required()
-    @program_ns.expect(program_model, validate=False)
-    @program_ns.marshal_with(program_model, code=201)
-    def post(self):
-        data = program_ns.payload
-        if not data.get('name'):
-            return {'message': 'name is required and cannot be empty'}, 400
-        program = Program(
-            name=data['name'],
-            description=data.get('description')
-        )
-        db.session.add(program)
-        db.session.commit()
-        return program, 201
+@program_bp.route('/programs/<id>', methods=['DELETE'])
+@jwt_required()
+def delete_program(id):
+    program = Program.query.get_or_404(id)
+    db.session.delete(program)
+    db.session.commit()
+    return jsonify({'message': 'Program deleted successfully'}), 200
