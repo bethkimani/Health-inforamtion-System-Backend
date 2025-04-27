@@ -6,7 +6,7 @@ from models import db
 program_bp = Blueprint('program', __name__)
 
 @program_bp.route('/programs', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_programs():
     programs = Program.query.all()
     return jsonify([{
