@@ -27,7 +27,7 @@ def approve_appointment(id):
     return jsonify({'message': 'Appointment approved'}), 200
 
 @appointment_bp.route('/appointments/<id>/reject', methods=['PATCH'])
-@jwt_required()
+#@jwt_required()
 def reject_appointment(id):
     appointment = Appointment.query.get_or_404(id)
     appointment.status = 'Rejected'

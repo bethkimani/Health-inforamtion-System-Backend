@@ -8,7 +8,7 @@ from datetime import datetime
 supplier_bp = Blueprint('supplier', __name__)
 
 @supplier_bp.route('/suppliers', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_suppliers():
     suppliers = Supplier.query.all()
     return jsonify([{
@@ -38,7 +38,7 @@ def get_suppliers():
     } for s in suppliers]), 200
 
 @supplier_bp.route('/suppliers', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def add_supplier():
     data = request.get_json()
     supplier = Supplier(
@@ -69,7 +69,7 @@ def add_supplier():
     return jsonify({'message': 'Supplier added successfully'}), 201
 
 @supplier_bp.route('/suppliers/<int:id>', methods=['PUT'])
-@jwt_required()
+#@jwt_required()
 def update_supplier(id):
     supplier = Supplier.query.get_or_404(id)
     data = request.get_json()
@@ -81,7 +81,7 @@ def update_supplier(id):
     return jsonify({'message': 'Supplier updated successfully'}), 200
 
 @supplier_bp.route('/suppliers/<int:id>', methods=['DELETE'])
-@jwt_required()
+#@jwt_required()
 def delete_supplier(id):
     supplier = Supplier.query.get_or_404(id)
     db.session.delete(supplier)
@@ -89,7 +89,7 @@ def delete_supplier(id):
     return jsonify({'message': 'Supplier deleted successfully'}), 200
 
 @supplier_bp.route('/suppliers/<int:id>/documents', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def upload_document(id):
     supplier = Supplier.query.get_or_404(id)
     data = request.form

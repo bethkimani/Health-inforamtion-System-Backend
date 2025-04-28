@@ -6,7 +6,7 @@ from models import db
 team_member_bp = Blueprint('team_member', __name__)
 
 @team_member_bp.route('/team', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_team_members():
     members = TeamMember.query.all()
     return jsonify([{
@@ -18,7 +18,7 @@ def get_team_members():
     } for m in members]), 200
 
 @team_member_bp.route('/team', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def add_team_member():
     data = request.get_json()
     member = TeamMember(
@@ -33,7 +33,7 @@ def add_team_member():
     return jsonify({'message': 'Team member added successfully'}), 201
 
 @team_member_bp.route('/team/<id>', methods=['PUT'])
-@jwt_required()
+#@jwt_required()
 def update_team_member(id):
     member = TeamMember.query.get_or_404(id)
     data = request.get_json()
@@ -43,7 +43,7 @@ def update_team_member(id):
     return jsonify({'message': 'Team member updated successfully'}), 200
 
 @team_member_bp.route('/team/<id>', methods=['DELETE'])
-@jwt_required()
+#@jwt_required()
 def delete_team_member(id):
     member = TeamMember.query.get_or_404(id)
     db.session.delete(member)

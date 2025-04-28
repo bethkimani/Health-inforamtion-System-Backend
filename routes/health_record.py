@@ -6,7 +6,7 @@ from models import db
 health_record_bp = Blueprint('health_record', __name__)
 
 @health_record_bp.route('/health-records', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_health_records():
     records = HealthRecord.query.all()
     return jsonify([{
@@ -20,7 +20,7 @@ def get_health_records():
     } for r in records]), 200
 
 @health_record_bp.route('/health-records/<id>/complete', methods=['PATCH'])
-@jwt_required()
+#@jwt_required()
 def complete_health_record(id):
     record = HealthRecord.query.get_or_404(id)
     record.status = 'Completed'

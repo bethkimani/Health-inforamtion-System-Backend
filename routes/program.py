@@ -16,7 +16,7 @@ def get_programs():
     } for p in programs]), 200
 
 @program_bp.route('/programs', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def add_program():
     data = request.get_json()
     program = Program(
@@ -29,7 +29,7 @@ def add_program():
     return jsonify({'message': 'Program added successfully'}), 201
 
 @program_bp.route('/programs/<id>', methods=['DELETE'])
-@jwt_required()
+#@jwt_required()
 def delete_program(id):
     program = Program.query.get_or_404(id)
     db.session.delete(program)
