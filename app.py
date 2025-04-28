@@ -18,7 +18,7 @@ migrate = Migrate(app, db)
 # Configure CORS with detailed logging
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["https://health-information-system-frontend.onrender.com/"],
+        "origins": ["http://localhost:5173"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True,
